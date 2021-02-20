@@ -17,7 +17,7 @@ interface ConnectProps {
     onDeviceChange: (device: Adb | undefined) => void;
 }
 
-// const wsBackend = new AdbWsBackend("ws://localhost:15554");
+//const wsBackend = new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68694&pass=294849");
 
 export const Connect = withDisplayName('Connect')(({
     device,
@@ -38,11 +38,13 @@ export const Connect = withDisplayName('Connect')(({
 
         async function refresh() {
             const backendList: AdbBackend[] = await AdbWebUsbBackend.getDevices();
-            // backendList.push(wsBackend);
+            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68691&pass=210930", "aliyun_68691"));
+            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68694&pass=294849", "aliyun_68694"));
+            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68695&pass=806321", "aliyun_68695"));
 
             const options: IDropdownOption[] = backendList.map(item => ({
                 key: item.serial,
-                text: `${item.serial} ${item.name ? `(${item.name})` : ''}`,
+                text: `${item.name}`,
                 data: item,
             }));
             setBackendOptions(options);
@@ -128,7 +130,7 @@ export const Connect = withDisplayName('Connect')(({
         >
             <Dropdown
                 disabled={!!device || backendOptions.length === 0}
-                label="Available devices"
+                label="可用设备"
                 placeholder="No available devices"
                 options={backendOptions}
                 styles={DropdownStyles}
@@ -141,14 +143,14 @@ export const Connect = withDisplayName('Connect')(({
                 <Stack horizontal tokens={CommonStackTokens}>
                     <StackItem grow shrink>
                         <PrimaryButton
-                            text="Connect"
+                            text="连接"
                             disabled={!selectedBackend}
                             primary={!!selectedBackend}
                             styles={{ root: { width: '100%' } }}
                             onClick={connect}
                         />
                     </StackItem>
-                    <StackItem grow shrink>
+                    {/* <StackItem grow shrink>
                         <TooltipHost
                             content="WebADB can't connect to anything without your explicit permission."
                         >
@@ -160,10 +162,10 @@ export const Connect = withDisplayName('Connect')(({
                                 onClick={requestAccess}
                             />
                         </TooltipHost>
-                    </StackItem>
+                    </StackItem> */}
                 </Stack>
             ) : (
-                    <DefaultButton text="Disconnect" onClick={disconnect} />
+                    <DefaultButton text="断开连接" onClick={disconnect} />
                 )}
 
             <Dialog

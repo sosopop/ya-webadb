@@ -57,14 +57,14 @@ export const FrameBuffer = withDisplayName('FrameBuffer')(({
             key: 'start',
             disabled: !device,
             iconProps: { iconName: 'Camera' },
-            text: 'Capture',
+            text: '截屏',
             onClick: capture,
         },
         {
             key: 'Save',
             disabled: !hasImage,
             iconProps: { iconName: 'Save' },
-            text: 'Save',
+            text: '保存',
             onClick: () => {
                 const canvas = canvasRef.current;
                 if (!canvas) {
@@ -81,13 +81,13 @@ export const FrameBuffer = withDisplayName('FrameBuffer')(({
     ], [device, hasImage]);
 
     const commandBarFarItems = useMemo((): ICommandBarItemProps[] => [
-        {
-            key: 'DemoMode',
-            iconProps: { iconName: 'Personalize' },
-            checked: demoModeVisible,
-            text: 'Demo Mode Settings',
-            onClick: toggleDemoModeVisible,
-        },
+        // {
+        //     key: 'DemoMode',
+        //     iconProps: { iconName: 'Personalize' },
+        //     checked: demoModeVisible,
+        //     text: 'Demo Mode Settings',
+        //     onClick: toggleDemoModeVisible,
+        // },
         {
             key: 'info',
             iconProps: { iconName: 'Info' },

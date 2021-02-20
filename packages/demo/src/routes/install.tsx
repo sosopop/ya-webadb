@@ -80,7 +80,7 @@ export const Install = withDisplayName('Install')(({
             <Stack horizontal>
                 <DefaultButton
                     disabled={!device || installing}
-                    text="Open"
+                    text="打开"
                     onClick={handleOpen}
                 />
             </Stack>

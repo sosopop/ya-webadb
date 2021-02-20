@@ -55,62 +55,78 @@ function App(): JSX.Element | null {
 
 
     const routes = useMemo((): RouteInfo[] => [
-        {
-            path: '/',
-            exact: true,
-            name: 'Introduction',
-            children: (
-                <Intro />
-            )
-        },
+        // {
+        //     path: '/',
+        //     exact: true,
+        //     name: 'Introduction',
+        //     children: (
+        //         <Intro />
+        //     )
+        // },
         {
             path: '/device-info',
-            name: 'Device Info',
+            name: '设备信息',
             children: (
                 <DeviceInfo device={device} />
             )
         },
-        {
-            path: '/adb-over-wifi',
-            name: 'ADB over WiFi',
-            children: (
-                <TcpIp device={device} />
-            )
-        },
+        // {
+        //     path: '/adb-over-wifi',
+        //     name: 'ADB over WiFi',
+        //     children: (
+        //         <TcpIp device={device} />
+        //     )
+        // },
         {
             path: '/shell',
-            name: 'Interactive Shell',
+            name: '命令终端',
             children: (
                 <Shell device={device} />
             ),
         },
         {
             path: '/file-manager',
-            name: 'File Manager',
+            name: '文件管理',
             children: (
                 <FileManager device={device} />
             ),
         },
         {
             path: '/install',
-            name: 'Install APK',
+            name: '安装APK',
             children: (
                 <Install device={device} />
             ),
         },
         {
             path: '/framebuffer',
-            name: 'Screen Capture',
+            name: '截屏',
             children: (
                 <FrameBuffer device={device} />
             ),
         },
         {
             path: '/scrcpy',
-            name: 'Scrcpy',
+            name: '远程控制',
             noCache: true,
             children: (
                 <Scrcpy device={device} />
+            ),
+        },
+        {
+            path: '/#',
+            name: '其他控制功能',
+            noCache: true,
+            children: (
+                <div />
+            ),
+        },
+        {
+            path: '/#',
+            name: '设置',
+            noCache: true,
+            children: (
+                <div />
             ),
         },
     ], [device]);
@@ -127,7 +143,7 @@ function App(): JSX.Element | null {
                     />
 
                     <StackItem grow>
-                        <div className={classNames.title}>WebADB Demo</div>
+                        <div className={classNames.title}>屏端远程调试工具</div>
                     </StackItem>
 
                     <ToggleLogger />

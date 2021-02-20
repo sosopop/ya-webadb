@@ -226,7 +226,7 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
             result.push({
                 key: 'stop',
                 iconProps: { iconName: 'Stop' },
-                text: 'Stop',
+                text: '结束',
                 onClick: stop,
             });
         } else {
@@ -234,7 +234,7 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                 key: 'start',
                 disabled: !device,
                 iconProps: { iconName: 'Play' },
-                text: 'Start',
+                text: '开始',
                 onClick: start,
             });
         }
@@ -243,7 +243,7 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
             key: 'fullscreen',
             disabled: !running,
             iconProps: { iconName: 'Fullscreen' },
-            text: 'Fullscreen',
+            text: '全屏',
             onClick: () => { deviceViewRef.current?.enterFullscreen(); },
         });
 
@@ -258,13 +258,13 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
         //     text: 'Settings',
         //     onClick: toggleSettingsVisible,
         // },
-        {
-            key: 'DemoMode',
-            iconProps: { iconName: 'Personalize' },
-            checked: demoModeVisible,
-            text: 'Demo Mode Settings',
-            onClick: toggleDemoModeVisible,
-        },
+        // {
+        //     key: 'DemoMode',
+        //     iconProps: { iconName: 'Personalize' },
+        //     checked: demoModeVisible,
+        //     text: 'Demo Mode Settings',
+        //     onClick: toggleDemoModeVisible,
+        // },
         {
             key: 'info',
             iconProps: { iconName: 'Info' },

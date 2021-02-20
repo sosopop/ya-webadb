@@ -130,7 +130,7 @@ export const Shell = withDisplayName('Shell')(({
                 <Stack horizontal>
                     <StackItem grow>
                         <SearchBox
-                            placeholder="Find"
+                            placeholder="查找"
                             value={findKeyword}
                             onChange={handleFindKeywordChange}
                             onSearch={findNext}

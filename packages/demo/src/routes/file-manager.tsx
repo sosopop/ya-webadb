@@ -107,7 +107,7 @@ export const FileManager = withDisplayName('FileManager')(({
         });
         list.unshift({
             key: '/',
-            text: 'Device',
+            text: '设备',
             onClick: () => setCurrentPath('/'),
         });
         list[list.length - 1].isCurrentItem = true;
@@ -220,7 +220,7 @@ export const FileManager = withDisplayName('FileManager')(({
         const list: IColumn[] = [
             {
                 key: 'type',
-                name: 'File Type',
+                name: '文件类型',
                 iconName: 'Page',
                 isIconOnly: true,
                 minWidth: 20,
@@ -241,7 +241,7 @@ export const FileManager = withDisplayName('FileManager')(({
             },
             {
                 key: 'name',
-                name: 'Name',
+                name: '文件名',
                 minWidth: 0,
                 isRowHeader: true,
                 onRender(item: AdbSyncEntryResponse) {
@@ -254,7 +254,7 @@ export const FileManager = withDisplayName('FileManager')(({
             },
             {
                 key: 'permission',
-                name: 'Permission',
+                name: '权限',
                 minWidth: 0,
                 isCollapsible: true,
                 onRender(item: AdbSyncEntryResponse) {
@@ -263,7 +263,7 @@ export const FileManager = withDisplayName('FileManager')(({
             },
             {
                 key: 'size',
-                name: 'Size',
+                name: '大小',
                 minWidth: 0,
                 isCollapsible: true,
                 onRender(item: AdbSyncEntryResponse) {
@@ -275,7 +275,7 @@ export const FileManager = withDisplayName('FileManager')(({
             },
             {
                 key: 'mtime',
-                name: 'Last Modified Time',
+                name: '最后修改时间',
                 minWidth: 150,
                 isCollapsible: true,
                 onRender(item: AdbSyncEntryResponse) {
@@ -383,7 +383,7 @@ export const FileManager = withDisplayName('FileManager')(({
             case 0:
                 result.push({
                     key: 'upload',
-                    text: 'Upload',
+                    text: '上传',
                     iconProps: { iconName: 'Upload' },
                     disabled: !device,
                     onClick() {
@@ -404,7 +404,7 @@ export const FileManager = withDisplayName('FileManager')(({
                 if (selectedItems[0].type === LinuxFileType.File) {
                     result.push({
                         key: 'download',
-                        text: 'Download',
+                        text: '下载',
                         iconProps: { iconName: 'Download' },
                         onClick() {
                             (async () => {
@@ -430,7 +430,7 @@ export const FileManager = withDisplayName('FileManager')(({
             default:
                 result.push({
                     key: 'delete',
-                    text: 'Delete',
+                    text: '删除',
                     iconProps: { iconName: 'Delete' },
                     onClick() {
                         (async () => {
