@@ -238,12 +238,33 @@ export class ScrcpyClient {
         onClose,
     }: ScrcpyStartOptions): Promise<ScrcpyClient> {
         const streams = new EventQueue<AdbSocket>();
-        const reverseRegistry = await device.reverse.add('localabstract:scrcpy', 27183, {
-            onSocket(packet, stream) {
-                streams.enqueue(stream);
-            },
-        });
+        // const reverseRegistry = await device.reverse.add('localabstract:scrcpy', 27183, {
+        //     onSocket(packet, stream) {
+        //         streams.enqueue(stream);
+        //     },
+        // });
 
+        // const process = await device.spawn(
+        //     `CLASSPATH=${path}`,
+        //     'app_process',
+        //     /*          unused */ '/',
+        //     'com.genymobile.scrcpy.Server',
+        //     version,
+        //     logLevel,
+        //     maxSize.toString(), // (0: unlimited)
+        //     bitRate.toString(),
+        //     maxFps.toString(),
+        //     orientation.toString(),
+        //     /*  tunnel_forward */ 'false',
+        //     /*            crop */ '-',
+        //     /* send_frame_meta */ 'true', // always send frame meta (packet boundaries + timestamp)
+        //     /*         control */ 'true',
+        //     /*      display_id */ '0',
+        //     /*    show_touches */ 'false',
+        //     /*      stay_awake */ 'true',
+        //     /*   codec_options */ `profile=${profile},level=${level}`,
+        //     encoder,
+        // );
         const process = await device.spawn(
             `CLASSPATH=${path}`,
             'app_process',
@@ -255,7 +276,7 @@ export class ScrcpyClient {
             bitRate.toString(),
             maxFps.toString(),
             orientation.toString(),
-            /*  tunnel_forward */ 'false',
+            /*  tunnel_forward */ 'true',
             /*            crop */ '-',
             /* send_frame_meta */ 'true', // always send frame meta (packet boundaries + timestamp)
             /*         control */ 'true',
@@ -263,9 +284,8 @@ export class ScrcpyClient {
             /*    show_touches */ 'false',
             /*      stay_awake */ 'true',
             /*   codec_options */ `profile=${profile},level=${level}`,
-            encoder,
+            "'OMX.rk.video_encoder.avc'",
         );
-
         const disposables = new DisposableList();
         // Dispatch messages before connection created
         disposables.add(process.onData(data => {
@@ -286,13 +306,37 @@ export class ScrcpyClient {
             process.onClose(onClose);
         }
 
+        for(let i = 0; i < 100; i++ ) {
+            try {
+                await new Promise(resolve => {
+                    window.setTimeout(resolve, 1000);
+                });
+                console.log("stream in");
+                streams.enqueue(await device.createSocket('localabstract:scrcpy'));
+                console.log("stream out");
+                await new Promise(resolve => {
+                    window.setTimeout(resolve, 10000);
+                });
+                console.log("stream in");
+                streams.enqueue(await device.createSocket('localabstract:scrcpy'));
+                console.log("stream out");
+                break;
+            } catch (error) {
+                console.log("stream open failed");
+            }
+        }
+        if(streams.length != 2) {
+            console.log("stream connect failed");
+        }
+
+        console.log("stream connected");
         const videoStream = new AdbBufferedStream(await streams.dequeue());
         const controlStream = new AdbBufferedStream(await streams.dequeue());
 
         // Don't await this!
         // `reverse.remove`'s response will never arrive
         // before we read all pending data from `videoStream`
-        device.reverse.remove(reverseRegistry);
+        //device.reverse.remove(reverseRegistry);
 
         // Stop dispatch messages
         disposables.dispose();

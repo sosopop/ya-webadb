@@ -41,6 +41,7 @@ export const Connect = withDisplayName('Connect')(({
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68691&pass=210930", "aliyun_68691"));
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68694&pass=294849", "aliyun_68694"));
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68695&pass=806321", "aliyun_68695"));
+            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=7171&pass=2492", "7171"));
 
             const options: IDropdownOption[] = backendList.map(item => ({
                 key: item.serial,
