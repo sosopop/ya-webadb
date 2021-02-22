@@ -1,4 +1,4 @@
-import { StructFieldValue, StructOptions, StructSerializationContext, StructValue } from '../basic';
+import { StructFieldDefinition, StructFieldValue, StructOptions, StructSerializationContext, StructValue } from '../basic';
 import type { KeysOfType } from '../utils';
 import { ArrayBufferLikeFieldDefinition, ArrayBufferLikeFieldType, ArrayBufferLikeFieldValue } from './array-buffer';
 
@@ -9,6 +9,8 @@ export interface VariableLengthArrayBufferLikeFieldOptions<
     TLengthField extends LengthField<TFields> = any,
     > {
     lengthField: TLengthField;
+
+    lengthFieldBase?: number;
 }
 
 export class VariableLengthArrayBufferLikeFieldDefinition<
@@ -26,7 +28,7 @@ export class VariableLengthArrayBufferLikeFieldDefinition<
     protected getDeserializeSize(struct: StructValue) {
         let value = struct.value[this.options.lengthField] as number | string;
         if (typeof value === 'string') {
-            value = Number.parseInt(value, 10);
+            value = Number.parseInt(value, this.options.lengthFieldBase ?? 10);
         }
         return value;
     }
@@ -100,15 +102,19 @@ export class VariableLengthArrayBufferLikeStructFieldValue<
     }
 }
 
+// Not using `VariableLengthArrayBufferLikeStructFieldValue` directly makes writing tests much easier...
+type VariableLengthArrayBufferLikeFieldValueLike =
+    StructFieldValue<StructFieldDefinition<VariableLengthArrayBufferLikeFieldOptions, any, any>>;
+
 export class VariableLengthArrayBufferLikeFieldLengthValue
     extends StructFieldValue {
     protected originalField: StructFieldValue;
 
-    protected arrayBufferField: StructFieldValue;
+    protected arrayBufferField: VariableLengthArrayBufferLikeFieldValueLike;
 
     public constructor(
         originalField: StructFieldValue,
-        arrayBufferField: StructFieldValue,
+        arrayBufferField: VariableLengthArrayBufferLikeFieldValueLike,
     ) {
         super(originalField.definition, originalField.options, originalField.context, originalField.struct, 0);
         this.originalField = originalField;
@@ -124,7 +130,7 @@ export class VariableLengthArrayBufferLikeFieldLengthValue
 
         const originalValue = this.originalField.get();
         if (typeof originalValue === 'string') {
-            value = value.toString();
+            value = value.toString(this.arrayBufferField.definition.options.lengthFieldBase ?? 10);
         }
 
         return value;
