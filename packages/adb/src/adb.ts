@@ -192,7 +192,10 @@ export class Adb {
 
     public async root(): Promise<void> {
         await this.createSocketAndReadAll("root:");
-        await this.connect();
+    }
+
+    public async remount(): Promise<void> {
+        await this.createSocketAndReadAll("remount:");
     }
 
     public spawn(command: string, ...args: string[]): Promise<AdbSocket> {

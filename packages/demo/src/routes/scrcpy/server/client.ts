@@ -409,7 +409,7 @@ export class ScrcpyClient {
                 });
                 let videoSocket = await device.createSocket('localabstract:scrcpy');
                 videoStream = new AdbBufferedStream(videoSocket);
-                videoStream.read(1);
+                await videoStream.read(1);
                 let ctrlSocket = await device.createSocket('localabstract:scrcpy');
                 controlStream = new AdbBufferedStream(ctrlSocket);
                 break;

@@ -39,6 +39,7 @@ export const Connect = withDisplayName('Connect')(({
         async function refresh() {
             const backendList: AdbBackend[] = await AdbWebUsbBackend.getDevices();
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68691&pass=839725", "aliyun_68691"));
+            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68693&pass=126413", "aliyun_68693"));
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68694&pass=830864", "aliyun_68694"));
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68695&pass=367909", "aliyun_68695"));
             backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=7171&pass=2492", "7171"));
@@ -100,7 +101,7 @@ export const Connect = withDisplayName('Connect')(({
                     setConnecting(true);
                     await device.connect();
                     try {
-                        await device.root();
+                        await device.remount();
                     } catch (error) {
 
                     }
