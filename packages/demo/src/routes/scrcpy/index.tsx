@@ -97,7 +97,7 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                     logLevel: ScrcpyLogLevel.Debug,
                     // TinyH264 is slow, so limit the max resolution and bit rate
                     maxSize: 1080,
-                    bitRate: 4_000_000,
+                    bitRate: 2_000_000,
                     orientation: ScrcpyScreenOrientation.Unlocked,
                     // TinyH264 only supports Baseline profile
                     profile: AndroidCodecProfile.Baseline,

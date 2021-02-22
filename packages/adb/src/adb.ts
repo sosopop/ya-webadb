@@ -190,6 +190,11 @@ export class Adb {
         return this.createSocket('shell:');
     }
 
+    public async root(): Promise<void> {
+        await this.createSocketAndReadAll("root:");
+        await this.connect();
+    }
+
     public spawn(command: string, ...args: string[]): Promise<AdbSocket> {
         // TODO: use shell protocol
         return this.createSocket(`shell:${command} ${args.join(' ')}`);

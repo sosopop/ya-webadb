@@ -65,8 +65,7 @@ export class AdbReverseCommand extends AutoDisposable {
 
     private async sendRequest(service: string) {
         const stream = await this.createBufferedStream(service);
-        const data = await stream.read(4);
-        const success = this.dispatcher.backend.decodeUtf8(data) === 'OKAY';
+        const success = this.dispatcher.backend.decodeUtf8(await stream.read(4)) === 'OKAY';
         if (!success) {
             await AdbReverseErrorResponse.deserialize(stream);
         }

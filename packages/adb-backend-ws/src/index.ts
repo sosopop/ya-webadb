@@ -45,7 +45,6 @@ export default class AdbWsBackend implements AdbBackend {
 
         const queue = new EventQueue<ArrayBuffer>();
         socket.onmessage = ({ data }: { data: ArrayBuffer; }) => {
-            console.log(decodeUtf8(data));
             queue.enqueue(data, data.byteLength);
         };
         socket.onclose = () => {
@@ -97,7 +96,6 @@ export default class AdbWsBackend implements AdbBackend {
     }
 
     public read(length: number): ArrayBuffer | Promise<ArrayBuffer> {
-        console.log("read " + length);
         return this.bufferedStream!.read(length);
     }
 

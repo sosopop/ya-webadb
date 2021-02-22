@@ -221,6 +221,99 @@ interface FrameSize {
 }
 
 export class ScrcpyClient {
+    public static async startTest({
+        device,
+        path,
+        version,
+        logLevel = ScrcpyLogLevel.Error,
+        maxSize = 0,
+        bitRate,
+        maxFps = 0,
+        orientation = ScrcpyScreenOrientation.Unlocked,
+        profile = AndroidCodecProfile.Baseline,
+        level = AndroidCodecLevel.Level4,
+        encoder = '-',
+        onInfo,
+        onError,
+        onClose,
+    }: ScrcpyStartOptions): Promise<ScrcpyClient> {
+        const streams = new EventQueue<AdbSocket>();
+        const reverseRegistry = await device.reverse.add('localabstract:scrcpy', 27183, {
+            onSocket(packet, stream) {
+                streams.enqueue(stream);
+            },
+        });
+
+        const process = await device.spawn(
+            `CLASSPATH=${path}`,
+            'app_process',
+            /*          unused */ '/',
+            'com.genymobile.scrcpy.Server',
+            version,
+            logLevel,
+            maxSize.toString(), // (0: unlimited)
+            bitRate.toString(),
+            maxFps.toString(),
+            orientation.toString(),
+            /*  tunnel_forward */ 'false',
+            /*            crop */ '-',
+            /* send_frame_meta */ 'true', // always send frame meta (packet boundaries + timestamp)
+            /*         control */ 'true',
+            /*      display_id */ '0',
+            /*    show_touches */ 'false',
+            /*      stay_awake */ 'true',
+            /*   codec_options */ `profile=${profile},level=${level}`,
+            encoder,
+        );
+
+        const disposables = new DisposableList();
+        // Dispatch messages before connection created
+        disposables.add(process.onData(data => {
+            const string = device.backend.decodeUtf8(data);
+            for (const output of parseScrcpyOutput(string)) {
+                switch (output.level) {
+                    case ScrcpyLogLevel.Info:
+                        onInfo?.(output.message);
+                        break;
+                    case ScrcpyLogLevel.Error:
+                        onError?.(output);
+                        break;
+                }
+            }
+        }));
+
+        if (onClose) {
+            process.onClose(onClose);
+        }
+
+        const videoStream = new AdbBufferedStream(await streams.dequeue());
+        const controlStream = new AdbBufferedStream(await streams.dequeue());
+
+        // Don't await this!
+        // `reverse.remove`'s response will never arrive
+        // before we read all pending data from `videoStream`
+        device.reverse.remove(reverseRegistry);
+
+        // Stop dispatch messages
+        disposables.dispose();
+
+        const connection = new ScrcpyClient(
+            process,
+            videoStream,
+            controlStream,
+        );
+
+        // Forward message handlers
+        if (onInfo) {
+            connection.onInfo(onInfo);
+        }
+        if (onError) {
+            connection.onError(onError);
+        }
+
+        return connection;
+    }
+
     public static async start({
         device,
         path,
@@ -282,9 +375,9 @@ export class ScrcpyClient {
             /*         control */ 'true',
             /*      display_id */ '0',
             /*    show_touches */ 'false',
-            /*      stay_awake */ 'true',
+            /*      stay_awake */ 'false',
             /*   codec_options */ `profile=${profile},level=${level}`,
-            "'OMX.rk.video_encoder.avc'",
+            encoder,
         );
         const disposables = new DisposableList();
         // Dispatch messages before connection created
@@ -306,33 +399,26 @@ export class ScrcpyClient {
             process.onClose(onClose);
         }
 
+        let videoStream!:AdbBufferedStream;
+        let controlStream!:AdbBufferedStream;
+
         for(let i = 0; i < 100; i++ ) {
             try {
                 await new Promise(resolve => {
-                    window.setTimeout(resolve, 1000);
+                    window.setTimeout(resolve, 100);
                 });
-                console.log("stream in");
-                streams.enqueue(await device.createSocket('localabstract:scrcpy'));
-                console.log("stream out");
-                await new Promise(resolve => {
-                    window.setTimeout(resolve, 10000);
-                });
-                console.log("stream in");
-                streams.enqueue(await device.createSocket('localabstract:scrcpy'));
-                console.log("stream out");
+                let videoSocket = await device.createSocket('localabstract:scrcpy');
+                videoStream = new AdbBufferedStream(videoSocket);
+                videoStream.read(1);
+                let ctrlSocket = await device.createSocket('localabstract:scrcpy');
+                controlStream = new AdbBufferedStream(ctrlSocket);
                 break;
             } catch (error) {
                 console.log("stream open failed");
             }
         }
-        if(streams.length != 2) {
-            console.log("stream connect failed");
-        }
 
         console.log("stream connected");
-        const videoStream = new AdbBufferedStream(await streams.dequeue());
-        const controlStream = new AdbBufferedStream(await streams.dequeue());
-
         // Don't await this!
         // `reverse.remove`'s response will never arrive
         // before we read all pending data from `videoStream`
@@ -478,12 +564,12 @@ export class ScrcpyClient {
 
             let buffer: ArrayBuffer | undefined;
             while (this._running) {
-                const { pts, data } = await VideoPacket.deserialize(this.videoStream);
+                const { pts, size, data } = await VideoPacket.deserialize(this.videoStream);
                 if (!data || data.byteLength === 0) {
                     continue;
                 }
 
-                if (pts === NoPts) {
+                if (0 && pts === NoPts) {
                     const {
                         pic_width_in_mbs_minus1,
                         pic_height_in_map_units_minus1,
