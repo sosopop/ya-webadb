@@ -88,17 +88,17 @@ export const FrameBuffer = withDisplayName('FrameBuffer')(({
         //     text: 'Demo Mode Settings',
         //     onClick: toggleDemoModeVisible,
         // },
-        {
-            key: 'info',
-            iconProps: { iconName: 'Info' },
-            iconOnly: true,
-            tooltipHostProps: {
-                content: 'Use ADB FrameBuffer command to capture a full-size, high-resolution screenshot.',
-                calloutProps: {
-                    calloutMaxWidth: 250,
-                }
-            },
-        }
+        // {
+        //     key: 'info',
+        //     iconProps: { iconName: 'Info' },
+        //     iconOnly: true,
+        //     tooltipHostProps: {
+        //         content: 'Use ADB FrameBuffer command to capture a full-size, high-resolution screenshot.',
+        //         calloutProps: {
+        //             calloutMaxWidth: 250,
+        //         }
+        //     },
+        // }
     ], [demoModeVisible]);
 
     return (

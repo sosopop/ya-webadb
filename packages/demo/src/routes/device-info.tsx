@@ -29,7 +29,7 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
 }: RouteProps): JSX.Element | null => {
     return (
         <>
-            <MessageBar>
+            {/* <MessageBar>
                 <span>ADB protocol version decides the packet format between client and server. By now it has 2 versions:</span>
                 <br />
 
@@ -53,34 +53,34 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
             <MessageBar>
                 <code>ro.product.name</code>
                 <span> field in Android Build Props</span>
-            </MessageBar>
-            <span>Product Name: {device?.product}</span>
-            <Separator />
+            </MessageBar> */}
+            {/* <span>产品名: {device?.product}</span>
+            <Separator /> */}
 
-            <MessageBar>
+            {/* <MessageBar>
                 <code>ro.product.model</code>
                 <span> field in Android Build Props</span>
-            </MessageBar>
-            <span>Model Name: {device?.model}</span>
-            <Separator />
+            </MessageBar> */}
+            <span>设备型号: {device?.model}</span>
+            {/* <Separator /> */}
 
-            <MessageBar>
+            {/* <MessageBar>
                 <code>ro.product.device</code>
                 <span> field in Android Build Props</span>
-            </MessageBar>
-            <span>Device Name: {device?.device}</span>
+            </MessageBar> */}
+            <span>设备名: {device?.device}</span>
             <Separator />
 
-            <MessageBar>
+            {/* <MessageBar>
                 <span>Feature list decides how each individual commands should behavior.</span>
                 <br />
 
                 <span>For example, it may indicate the availability of a new command, </span>
                 <span>or a workaround for an old bug is not required because it's already been fixed.</span>
                 <br />
-            </MessageBar>
-            <span>
-                <span>Features: </span>
+            </MessageBar> */}
+            {/* <span>
+                <span>特性: </span>
                 {device?.features?.map((feature, index) => (
                     <span>
                         {index !== 0 && (<span>, </span>)}
@@ -98,7 +98,7 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                         )}
                     </span>
                 ))}
-            </span>
+            </span> */}
         </>
     );
 });

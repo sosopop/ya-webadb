@@ -142,14 +142,14 @@ function App(): JSX.Element | null {
                         onClick={toggleLeftPanel}
                     />
 
-                    <StackItem grow>
-                        <div className={classNames.title}>屏端远程调试工具</div>
+                    <StackItem grow styles={{root: {padding: 10, fontWeight: 'bold'}}}>
+                        <div className={classNames.title}>星宏慧眼终端堡垒机</div>
                     </StackItem>
-
-                    <ToggleLogger />
+{/* 
+                    <ToggleLogger /> */}
                 </Stack>
 
-                <Stack grow horizontal verticalFill disableShrink styles={{ root: { minHeight: 0, overflow: 'hidden', lineHeight: '1.5' } }}>
+                <Stack grow horizontal verticalFill disableShrink styles={{ root: { minHeight: 0, overflow: 'hidden', lineHeight: '1.5'} }}>
                     <StackItem className={mergeStyles(classNames['left-column'], !leftPanelVisible && { display: 'none' })}>
                         <Connect
                             device={device}

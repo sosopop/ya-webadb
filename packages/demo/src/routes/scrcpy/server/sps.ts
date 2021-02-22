@@ -40,52 +40,98 @@ class BitReader {
 }
 
 function* iterateNalu(buffer: Uint8Array): Generator<Uint8Array> {
+    // -1 means we haven't found the first start code
     let start = -1;
-    let readIndex = 0;
     let writeIndex = 0;
-    while (readIndex < buffer.length) {
-        if (buffer[readIndex] !== 0x00) {
-            buffer[writeIndex] = buffer[readIndex];
-            readIndex += 1;
-            writeIndex += 1;
+
+    // How many `0x00`s in a row we have counted
+    let zeroCount = 0;
+
+    let inEmulation = false;
+
+    for (const byte of buffer) {
+        buffer[writeIndex] = byte;
+        writeIndex += 1;
+
+        if (inEmulation) {
+            if (byte > 0x03) {
+                // `0x00000304` or larger are invalid
+                throw new Error('Invalid data');
+            }
+
+            inEmulation = false;
             continue;
         }
 
-        readIndex += 1;
-        if (buffer[readIndex] !== 0x00) {
-            buffer[writeIndex] = buffer[readIndex];
-            readIndex += 1;
-            writeIndex += 1;
+        if (byte == 0x00) {
+            zeroCount += 1;
             continue;
         }
 
-        readIndex += 1;
-        switch (buffer[readIndex]) {
-            // @ts-expect-error fallthrough
-            case 0x00:
-                readIndex += 1;
-                if (buffer[readIndex] !== 0x01) {
-                    throw new Error('Invalid data');
-                }
-            case 0x01:
-                if (start !== -1) {
-                    yield buffer.subarray(start, writeIndex);
-                }
-                readIndex += 1;
-                start = writeIndex;
-                break;
-            // @ts-expect-error fallthrough
+        const lastZeroCount = zeroCount;
+        zeroCount = 0;
+
+        if (start === -1) {
+            // 0x000001 is the start code
+            // But it can be preceded by any number of zeros
+            // So 2 is the minimal
+            if (lastZeroCount >= 2 && byte === 0x01) {
+                // Found start of first NAL unit
+                writeIndex = 0;
+                start = 0;
+                continue;
+            }
+
+            // Not begin with start code
+            throw new Error('Invalid data');
+        }
+
+        if (lastZeroCount < 2) {
+            // zero or one `0x00`s are acceptable
+            continue;
+        }
+
+        if (byte === 0x01) {
+            // Remove all leading `0x00`s and this `0x01`
+            writeIndex -= lastZeroCount + 1;
+
+            // Found another NAL unit
+            yield buffer.subarray(start, writeIndex);
+
+            start = writeIndex;
+            continue;
+        }
+
+        if (lastZeroCount > 2) {
+            // Too much `0x00`s
+            throw new Error('Invalid data');
+        }
+
+        switch (byte) {
+            case 0x02:
+                // Didn't find why, but 7.4.1 NAL unit semantics forbids `0x000002` appearing in NAL units
+                throw new Error('Invalid data');
             case 0x03:
-                readIndex += 1;
+                // `0x000003` is the "emulation_prevention_three_byte"
+                // `0x00000300`, `0x00000301`, `0x00000302` and `0x00000303` represent
+                // `0x000000`, `0x000001`, `0x000002` and `0x000003` respectively
+
+                // Remove current byte
+                writeIndex -= 1;
+
+                inEmulation = true;
+                break;
             default:
-                buffer[writeIndex] = buffer[readIndex];
-                readIndex += 1;
-                writeIndex += 1;
+                // `0x000004` or larger are ok
                 break;
         }
     }
 
-    yield buffer.subarray(start);
+    if (inEmulation || zeroCount !== 0) {
+        throw new Error('Invalid data');
+    }
+
+    yield buffer.subarray(start, writeIndex);
 }
 
 // 7.3.2.1.1 Sequence parameter set data syntax
