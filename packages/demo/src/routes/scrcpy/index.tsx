@@ -69,6 +69,7 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
     }, []);
 
     const [bitRate, setBitRate] = useState(4_000_000);
+    const [maxSize, setMaxSize] = useState(0);
 
     const [tunnelForward, setTunnelForward] = useState(true);
     const handleTunnelForwardChange = useCallback((event: React.MouseEvent<HTMLElement>, checked?: boolean) => {
@@ -105,6 +106,16 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                     tunnelForward = current;
                     return current;
                 });
+                let bitRate!: number;
+                setBitRate(current => {
+                    bitRate = current;
+                    return current;
+                });
+                let maxSize!: number;
+                setMaxSize(current => {
+                    maxSize = current;
+                    return current;
+                });
 
                 const sync = await device.sync();
                 await sync.write(
@@ -121,7 +132,8 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                     path: DeviceServerPath,
                     version: ScrcpyServerVersion,
                     logLevel: ScrcpyLogLevel.Debug,
-                    bitRate: 4_000_000,
+                    bitRate: bitRate,
+                    maxSize: maxSize,
                 });
                 if (encoders.length === 0) {
                     throw new Error('No available encoder found');
@@ -141,12 +153,13 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                     version: ScrcpyServerVersion,
                     logLevel: ScrcpyLogLevel.Debug,
                     // TinyH264 is slow, so limit the max resolution and bit rate
-                    maxSize: 1080,
-                    bitRate: 4_000_000,
+                    maxSize,
+                    bitRate,
                     orientation: ScrcpyScreenOrientation.Unlocked,
                     // TinyH264 only supports Baseline profile
                     profile: AndroidCodecProfile.Baseline,
                     level: AndroidCodecLevel.Level4,
+                    tunnelForward,
                 };
 
                 let encoder!: string;
@@ -160,14 +173,6 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                     }
                 });
                 options.encoder = encoder;
-
-                let bitRate!: number;
-                setBitRate(current => {
-                    bitRate = current;
-                    return current;
-                });
-                options.bitRate = bitRate;
-                options.tunnelForward = tunnelForward;
 
                 const client = new ScrcpyClient(options);
 
@@ -483,6 +488,16 @@ export const Scrcpy = withDisplayName('Scrcpy')(({
                         max={10_000_000}
                         step={100}
                         onChange={setBitRate}
+                    />
+
+                    <NumberPicker
+                        label="最大尺寸"
+                        labelPosition={Position.top}
+                        value={maxSize}
+                        min={0}
+                        max={1920}
+                        step={2}
+                        onChange={setMaxSize}
                     />
 
                     <Toggle
