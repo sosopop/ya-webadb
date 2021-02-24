@@ -1,5 +1,6 @@
 import { IconButton, mergeStyles, mergeStyleSets, Nav, Stack, StackItem } from '@fluentui/react';
 import { initializeIcons } from '@uifabric/icons';
+import { Depths, FontSizes, NeutralColors, CommunicationColors, DefaultPalette } from '@fluentui/theme';
 import { Adb } from '@yume-chan/adb';
 import React, { useCallback, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -7,17 +8,19 @@ import { HashRouter, Redirect, useLocation } from 'react-router-dom';
 import { AdbEventLogger, CacheRoute, CacheSwitch, Connect, ErrorDialogProvider, Logger, LoggerContextProvider, ToggleLogger } from './components';
 import './index.css';
 import { DeviceInfo, FileManager, FrameBuffer, Install, Intro, Scrcpy, Shell, TcpIp } from './routes';
+import { Icon } from '@fluentui/react/lib/Icon';
 
 initializeIcons();
 
 const classNames = mergeStyleSets({
     'title-container': {
         borderBottom: '1px solid rgb(243, 242, 241)',
+        backgroundColor: DefaultPalette.themeDark,
+        padding: 10,
     },
     title: {
-        padding: '4px 0',
         fontSize: 20,
-        textAlign: 'center',
+        color: NeutralColors.white
     },
     'left-column': {
         width: 250,
@@ -26,7 +29,7 @@ const classNames = mergeStyleSets({
         overflow: 'auto',
     },
     'right-column': {
-        borderLeft: '1px solid rgb(243, 242, 241)',
+        borderLeft: '1px solid rgb(243, 242, 241)'
     }
 });
 
@@ -135,21 +138,25 @@ function App(): JSX.Element | null {
         <LoggerContextProvider>
             <Stack verticalFill>
                 <Stack className={classNames['title-container']} horizontal verticalAlign="center">
+                    <Icon iconName="BugSolid" style={{ padding: 10, fontSize: 24, color: NeutralColors.white }} />
+                    <StackItem grow>
+                        <div className={classNames.title}>屏端调试堡垒机</div>
+                    </StackItem>
                     <IconButton
                         checked={leftPanelVisible}
                         title="Toggle Menu"
                         iconProps={{ iconName: 'GlobalNavButton' }}
                         onClick={toggleLeftPanel}
+                        styles={{
+                            root: { marginRight: 20, color: NeutralColors.white },
+                            rootChecked: { backgroundColor: NeutralColors.white }
+                        }}
                     />
-
-                    <StackItem grow styles={{root: {padding: 10, fontWeight: 'bold'}}}>
-                        <div className={classNames.title}>星宏慧眼终端堡垒机</div>
-                    </StackItem>
-{/* 
+                    {/* 
                     <ToggleLogger /> */}
                 </Stack>
 
-                <Stack grow horizontal verticalFill disableShrink styles={{ root: { minHeight: 0, overflow: 'hidden', lineHeight: '1.5'} }}>
+                <Stack grow horizontal verticalFill disableShrink styles={{ root: { minHeight: 0, overflow: 'hidden', lineHeight: '1.5' } }}>
                     <StackItem className={mergeStyles(classNames['left-column'], !leftPanelVisible && { display: 'none' })}>
                         <Connect
                             device={device}
@@ -170,7 +177,7 @@ function App(): JSX.Element | null {
                         />
                     </StackItem>
 
-                    <StackItem grow styles={{ root: { width: 0 } }}>
+                    <StackItem grow styles={{ root: { width: 0, backgroundColor: NeutralColors.gray10 } }}>
                         <CacheSwitch>
                             {routes.map<React.ReactElement>(route => (
                                 <CacheRoute

@@ -1,9 +1,62 @@
-import { Icon, MessageBar, Separator, TooltipHost } from '@fluentui/react';
+import { Icon, MessageBar, Separator, Stack, StackItem, mergeStyleSets, Text } from '@fluentui/react';
+import { Depths, FontSizes, NeutralColors, CommunicationColors, DefaultPalette } from '@fluentui/theme';
 import { AdbFeatures } from '@yume-chan/adb';
-import React from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { ExternalLink } from '../components';
 import { withDisplayName } from '../utils';
 import { RouteProps } from './type';
+import {
+    Chart,
+    Point,
+    Area,
+    Annotation,
+    Axis,
+    Coordinate,
+    registerShape,
+    registerAnimation,
+} from 'bizcharts';
+
+import { RegisterShape, Shape } from 'bizcharts/lib/interface';
+
+const classNames = mergeStyleSets({
+    'title': {
+        fontWeight: 'bold',
+        color: NeutralColors.gray120,
+    },
+    'panel': {
+        boxShadow: Depths.depth4,
+        backgroundColor: NeutralColors.white,
+        padding: 10,
+    }
+});
+
+// 自定义Shape 部分
+registerShape('point', 'pointer', {
+    draw(cfg: any, container: any) {
+        const group = container.addGroup();
+
+        const center = this.parsePoint({ x: 0, y: 0 }); // 获取极坐标系下画布中心点
+        const start = this.parsePoint({ x: 0, y: 0.5 }); // 获取极坐标系下起始点
+
+        const preAngle = this.preAngle || 0;
+
+        const angle1 = Math.atan((start.y - center.y) / (start.x - center.x));
+        const angle = (Math.PI - 2 * (angle1)) * cfg.points[0].x;
+
+        this.preAngle = angle;
+
+        return group;
+    },
+} as any);
+
+const scale = {
+    value: {
+        min: 0,
+        max: 1,
+        tickInterval: 0.1,
+        formatter: (v: any) => v * 100
+    }
+}
 
 const knownFeatures: Record<string, string> = {
     'shell_v2': `"shell" command now supports separating child process's stdout and stderr, and returning exit code`,
@@ -24,81 +77,157 @@ const knownFeatures: Record<string, string> = {
     // 'sendrecv_v2_dry_run_send': '',
 };
 
+const propsMap: any = {
+    "ro.product.model": "设备型号",
+    "ro.product.device": "设备名称",
+    "ro.product.brand": "设备品牌",
+    "ro.product.manufacturer": "设备厂商",
+    "ro.build.version.release": "系统版本",
+    "ro.build.date": "固件生成日期"
+};
+
 export const DeviceInfo = withDisplayName('DeviceInfo')(({
     device
 }: RouteProps): JSX.Element | null => {
+    const [data, setData] = useState({ value: 0.0 });
+    const [sysInfo, setSysInfo] = useState([{ key: "", name: "", value: "" }]);
+
+    useEffect(() => {
+        //setData({ value: data.value + 1 });
+        device?.getProp("").then((output) => {
+            let result: Array<{
+                key: string;
+                name: string;
+                value: string;
+            }> = [];
+            output.replace(/[\[\]]/ig, "").split("\n").forEach((v) => {
+                if (v) {
+                    let value = v.match(/(.*?):(.*)/)?.map(v => v.trim());
+                    if (value && value.length === 3 && propsMap[value[1]]) {
+                        result.push({ "key": value[1], "name": propsMap[value[1]], "value": value[2] });
+                    }
+                }
+            })
+            result = result.reverse();
+            setSysInfo(result);
+        }).catch((e) => { });
+
+
+        device?.createSocket("shell:busybox top -d3").then(socket => {
+            let topString = "";
+            socket.onData(buffer => {
+                console.log(buffer);
+                topString += device.backend.decodeUtf8(buffer);
+                let parsedCpu = topString.match(/CPU\:\s?([\d\.]+)%/);
+                if (parsedCpu?.length === 2) {
+                    setData({ value: parseFloat(parsedCpu[1]) / 100 })
+                    console.log(parseFloat(parsedCpu[1]));
+                    topString = "";
+                } else if (topString.length > 1000) {
+                    topString = "";
+                }
+            });
+            socket.onClose(() => console.log("busybox top closed"));
+        }).catch((e) => { });
+    }, [device]);
+
     return (
         <>
-            {/* <MessageBar>
-                <span>ADB protocol version decides the packet format between client and server. By now it has 2 versions:</span>
-                <br />
+            <Stack tokens={{
+                childrenGap: 10,
+            }}>
+                <Text variant={'medium'} className={classNames.title}>系统信息</Text>
+                <StackItem>
+                    <Stack tokens={{
+                        childrenGap: 10,
+                    }} horizontal>
+                        <StackItem grow className={classNames.panel}>
+                            <table>
+                                <colgroup>
+                                    <col span={1} style={{ width: 120 }}></col>
+                                    <col span={1}></col>
+                                </colgroup>
+                                <tbody>
+                                    {
+                                        sysInfo.map((v) => (
+                                            <tr key={v.key}>
+                                                <td><b>{v.name}</b></td><td>{v.value}</td>
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        </StackItem>
+                        <StackItem grow className={classNames.panel}>
+                        </StackItem>
+                    </Stack>
+                </StackItem>
+                <Text variant={'medium'} className={classNames.title}>系统状态</Text>
+                <StackItem className={classNames.panel}>
+                    <Stack>
+                        <div style={{ width: 100, height: 120 }}>
+                            <Chart height={100} data={data} scale={scale} autoFit>
+                                <Coordinate
+                                    type="polar"
+                                    radius={0.75}
+                                    startAngle={-1.4 * Math.PI}
+                                    endAngle={0.4 * Math.PI}
+                                />
+                                <Axis
+                                    name="value"
+                                    line={null}
+                                    visible={false}
+                                    label={{
+                                        offset: -36,
+                                        style: {
+                                            fontSize: 18,
+                                            textAlign: "center",
+                                            textBaseline: "middle",
+                                        },
+                                    }}
+                                    grid={null}
+                                />
+                                <Point position="value*1" color="#1890FF" shape="pointer" />
+                                <Annotation.Arc
+                                    start={[0, 1]}
+                                    end={[1, 1]}
+                                    style={{
+                                        stroke: "#CBCBCB",
+                                        lineWidth: 5,
+                                        lineDash: null,
+                                        lineCap: "round",
+                                    }}
+                                />
+                                <Annotation.Arc
+                                    start={[0, 1]}
+                                    end={[data.value, 1]}
+                                    style={{
+                                        stroke: "#1890FF",
+                                        lineCap: "round",
+                                        lineWidth: 5,
+                                        lineDash: null,
+                                    }}
+                                />
+                                <Annotation.Text
+                                    position={["50%", "50%"]}
+                                    content={`${Math.round(data.value * 100)}%`}
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontSize: 14,
+                                        fill: "#262626",
+                                        textAlign: "center",
+                                    }}
+                                />
+                            </Chart>
+                        </div>
+                    </Stack>
+                </StackItem>
+            </Stack>
 
-                <code>01000000</code>
-                <span> used in Android versions until 8 (Oreo)</span>
-                <br />
-
-                <code>01000001</code>
-                <span> used in Android versions from 9 (Pie)</span>
-                <br />
-
-                <span>For more information, you can check</span>
-                <ExternalLink href="https://chensi.moe/blog/2020/09/30/webadb-part2-connection/#version">my blog post</ExternalLink>
-            </MessageBar>
-            <span>
-                <span>Protocol Version: </span>
-                <code>{device?.protocolVersion?.toString(16).padStart(8, '0')}</code>
-            </span>
-            <Separator />
-
-            <MessageBar>
-                <code>ro.product.name</code>
-                <span> field in Android Build Props</span>
-            </MessageBar> */}
-            {/* <span>产品名: {device?.product}</span>
-            <Separator /> */}
-
-            {/* <MessageBar>
-                <code>ro.product.model</code>
-                <span> field in Android Build Props</span>
-            </MessageBar> */}
+            {/*                 
             <span>设备型号: {device?.model}</span>
-            {/* <Separator /> */}
-
-            {/* <MessageBar>
-                <code>ro.product.device</code>
-                <span> field in Android Build Props</span>
-            </MessageBar> */}
             <span>设备名: {device?.device}</span>
-            <Separator />
-
-            {/* <MessageBar>
-                <span>Feature list decides how each individual commands should behavior.</span>
-                <br />
-
-                <span>For example, it may indicate the availability of a new command, </span>
-                <span>or a workaround for an old bug is not required because it's already been fixed.</span>
-                <br />
-            </MessageBar> */}
-            {/* <span>
-                <span>特性: </span>
-                {device?.features?.map((feature, index) => (
-                    <span>
-                        {index !== 0 && (<span>, </span>)}
-                        <span>{feature}</span>
-                        {knownFeatures[feature] && (
-                            <TooltipHost
-                                content={
-                                    <>
-                                        <span>{knownFeatures[feature]}</span>
-                                    </>
-                                }
-                            >
-                                <Icon style={{ marginLeft: 4 }} iconName="Unknown" />
-                            </TooltipHost>
-                        )}
-                    </span>
-                ))}
-            </span> */}
+            <Separator /> */}
         </>
     );
 });

@@ -61,6 +61,38 @@ export const Connect = withDisplayName('Connect')(({
         if (connecting || device) {
             return;
         }
+        let json = [
+            [
+                "6874",
+                "5003"
+            ],
+            [
+                "aliyun_68691",
+                "134696"
+            ],
+            [
+                "aliyun_68692",
+                "134696"
+            ],
+            [
+                "aliyun_68693",
+                "134696"
+            ],
+            [
+                "aliyun_68694",
+                "134696"
+            ],
+            [
+                "aliyun_68695",
+                "134696"
+            ]
+        ];
+        let backendList: AdbBackend[] = [];
+        for (let device of json) {
+            backendList.push(new AdbWsBackend(`${(location.protocol === "https:" ? "wss" : "ws")}://127.0.0.1:3888/proxy?user=${device[0]}&pass=${device[1]}`, device[0]));
+        }
+        setWsBackendList(backendList)
+        return;
         fetch("/devices/?t=" + new Date().getTime(), {
             method: 'GET',
         }).then((response) => {
