@@ -57,33 +57,31 @@ export const Connect = withDisplayName('Connect')(({
     }, []);
 
     const [wsBackendList, setWsBackendList] = useState<AdbBackend[]>([]);
-    useEffect(() => {
-        const intervalId = setTimeout(async () => {
-            if (connecting || device) {
-                return;
+    let refreshDevice = async () => {
+        if (connecting || device) {
+            return;
+        }
+        fetch("/devices/?t=" + new Date().getTime(), {
+            method: 'GET',
+        }).then((response) => {
+            if (response.status === 200) {
+                return response.json()
             }
-            let backendList:AdbBackend[] = [];
-            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68691&pass=839725", "aliyun_68691"));
-            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68693&pass=126413", "aliyun_68693"));
-            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68694&pass=830864", "aliyun_68694"));
-            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=aliyun_68695&pass=367909", "aliyun_68695"));
-            backendList.push(new AdbWsBackend("ws://127.0.0.1:1555/?user=7171&pass=2492", "7171"));
+            return null;
+        }).then((json) => {
+            let backendList: AdbBackend[] = [];
+            for (let device of json) {
+                backendList.push(new AdbWsBackend(`${(location.protocol === "https:" ? "wss" : "ws")}://${location.host}/proxy?user=${device[0]}&pass=${device[1]}`, device[0]));
+            }
             setWsBackendList(backendList)
-            setSelectedBackend(backendList[0])
-            // try {
-            //     //await wsBackend.connect();
-            //     //setWsBackendList([wsBackend]);
-            //     //setSelectedBackend(wsBackend);
-            // } catch {
-            //     setWsBackendList([]);
-            // } finally {
-            //     await wsBackend.dispose();
-            // }
-        }, 0);
-
-        // return () => {
-        //     clearInterval(intervalId);
-        // };
+        }).catch(e => { console.log(e) })
+    }
+    useEffect(() => {
+        refreshDevice();
+        const intervalId = setInterval(refreshDevice, 10000);
+        return () => {
+            clearInterval(intervalId);
+        };
     }, [connecting, device]);
 
     const handleSelectedBackendChange = (
@@ -166,7 +164,7 @@ export const Connect = withDisplayName('Connect')(({
     return (
         <Stack
             tokens={{ childrenGap: 8, padding: '0 0 8px 8px' }}
-            styles={{ root: {paddingTop: 10}}}
+            styles={{ root: { paddingTop: 10 } }}
         >
             <Dropdown
                 disabled={!!device || backendOptions.length === 0}
