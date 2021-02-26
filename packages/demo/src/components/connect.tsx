@@ -67,24 +67,16 @@ export const Connect = withDisplayName('Connect')(({
                 "5003"
             ],
             [
-                "aliyun_68691",
-                "134696"
-            ],
-            [
                 "aliyun_68692",
-                "134696"
+                "946657"
             ],
             [
                 "aliyun_68693",
-                "134696"
+                "946657"
             ],
             [
                 "aliyun_68694",
-                "134696"
-            ],
-            [
-                "aliyun_68695",
-                "134696"
+                "946657"
             ]
         ];
         let backendList: AdbBackend[] = [];
@@ -137,7 +129,9 @@ export const Connect = withDisplayName('Connect')(({
                     setConnecting(true);
                     await device.connect();
                     try {
-                        await device.remount();
+                        // await device.root();
+                        // await device.connect();
+                        //await device.remount();
                     } catch (error) {
 
                     }

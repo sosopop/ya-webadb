@@ -51,6 +51,8 @@
         "@yume-chan/event": "^0.0.5",
         "@yume-chan/struct": "^0.0.5",
         "bizcharts": "^4.1.7",
+        "echarts": "^5.0.2",
+        "echarts-for-react": "^3.0.0",
         "jmuxer": "2.0.0",
         "path-browserify": "1.0.1",
         "react": "17.0.1",
