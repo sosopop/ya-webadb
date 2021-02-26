@@ -116,22 +116,22 @@ function App(): JSX.Element | null {
                 <Scrcpy device={device} />
             ),
         },
-        {
-            path: '/#',
-            name: '其他控制功能',
-            noCache: true,
-            children: (
-                <div />
-            ),
-        },
-        {
-            path: '/#',
-            name: '设置',
-            noCache: true,
-            children: (
-                <div />
-            ),
-        },
+        // {
+        //     path: '/#',
+        //     name: '其他控制功能',
+        //     noCache: true,
+        //     children: (
+        //         <div />
+        //     ),
+        // },
+        // {
+        //     path: '/#',
+        //     name: '设置',
+        //     noCache: true,
+        //     children: (
+        //         <div />
+        //     ),
+        // },
     ], [device]);
 
     return (

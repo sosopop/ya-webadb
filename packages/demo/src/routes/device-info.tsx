@@ -622,22 +622,22 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                 <Text variant={'medium'} className={classNames.title}>系统状态</Text>
                 <StackItem className={classNames.panel}>
                     <Stack horizontal wrap tokens={{}}>
-                        <ReactECharts option={optionsCPU} style={{ width: 230, height: 280 }} ref={(e) => {
+                        <ReactECharts option={optionsCPU} style={{ width: 240, height: 240 }} ref={(e) => {
                             chartRef.refCPU = e;
                         }} />
-                        <ReactECharts option={optionsMEM} style={{ width: 230, height: 280 }} ref={(e) => {
+                        <ReactECharts option={optionsMEM} style={{ width: 240, height: 240 }} ref={(e) => {
                             chartRef.refMem = e;
                         }} />
-                        <ReactECharts option={optionsDisk} style={{ width: 230, height: 280 }} ref={(e) => {
+                        <ReactECharts option={optionsDisk} style={{ width: 240, height: 240 }} ref={(e) => {
                             chartRef.refDisk = e;
                         }} />
-                        <ReactECharts option={optionsSpeedIn} style={{ width: 230, height: 280 }} ref={(e) => {
+                        <ReactECharts option={optionsSpeedIn} style={{ width: 240, height: 240 }} ref={(e) => {
                             chartRef.refSpeedIn = e;
                         }} />
-                        <ReactECharts option={optionsSpeedOut} style={{ width: 230, height: 280 }} ref={(e) => {
+                        <ReactECharts option={optionsSpeedOut} style={{ width: 240, height: 240 }} ref={(e) => {
                             chartRef.refSpeedOut = e;
                         }} />
-                        <ReactECharts option={optionsTemp} style={{ width: 230, height: 280 }} ref={(e) => {
+                        <ReactECharts option={optionsTemp} style={{ width: 240, height: 240 }} ref={(e) => {
                             chartRef.refTemp = e;
                         }} />
                     </Stack>
