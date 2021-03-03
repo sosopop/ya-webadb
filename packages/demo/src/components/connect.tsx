@@ -39,7 +39,7 @@ export const Connect = withDisplayName('Connect')(({
     }, []);
     useEffect(() => {
         if (!supported) {
-            showErrorDialog('Your browser does not support WebUSB standard, which is required for this site to work.\n\nLatest version of Google Chrome (for Windows, macOS, Linux and Android), Microsoft Edge (for Windows and macOS), or other Chromium-based browsers should work.');
+            //showErrorDialog('Your browser does not support WebUSB standard, which is required for this site to work.\n\nLatest version of Google Chrome (for Windows, macOS, Linux and Android), Microsoft Edge (for Windows and macOS), or other Chromium-based browsers should work.');
             return;
         }
 
@@ -61,30 +61,46 @@ export const Connect = withDisplayName('Connect')(({
         if (connecting || device) {
             return;
         }
-        let json = [
-            [
-                "6874",
-                "5003"
-            ],
-            [
-                "aliyun_68692",
-                "946657"
-            ],
-            [
-                "aliyun_68693",
-                "946657"
-            ],
-            [
-                "aliyun_68694",
-                "946657"
-            ]
-        ];
-        let backendList: AdbBackend[] = [];
-        for (let device of json) {
-            backendList.push(new AdbWsBackend(`${(location.protocol === "https:" ? "wss" : "ws")}://127.0.0.1:3888/proxy?user=${device[0]}&pass=${device[1]}`, device[0]));
-        }
-        setWsBackendList(backendList)
-        return;
+        // let json = [
+        //     [
+        //         "aliyun_20635",
+        //         "294729"
+        //     ],
+        //     [
+        //         "aliyun_21401",
+        //         "153000"
+        //     ],
+        //     [
+        //         "aliyun_21402",
+        //         "153000"
+        //     ],
+        //     [
+        //         "aliyun_68692",
+        //         "614860"
+        //     ],
+        //     [
+        //         "aliyun_68693",
+        //         "614860"
+        //     ],
+        //     [
+        //         "aliyun_68694",
+        //         "614860"
+        //     ],
+        //     [
+        //         "aliyun_68698",
+        //         "619765"
+        //     ],
+        //     [
+        //         "aliyun_68699",
+        //         "925070"
+        //     ]
+        // ];
+        // let backendList: AdbBackend[] = [];
+        // for (let device of json) {
+        //     backendList.push(new AdbWsBackend(`${(location.protocol === "https:" ? "wss" : "ws")}://127.0.0.1:3888/proxy?user=${device[0]}&pass=${device[1]}`, device[0]));
+        // }
+        // setWsBackendList(backendList)
+        // return;
         fetch("/devices/?t=" + new Date().getTime(), {
             method: 'GET',
         }).then((response) => {

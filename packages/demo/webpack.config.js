@@ -62,6 +62,7 @@ const config = (env, argv) => {
         },
         devServer: {
             contentBase: path_1.default.resolve(context, 'lib'),
+            host: "0.0.0.0",
             port: 9000,
         },
     };

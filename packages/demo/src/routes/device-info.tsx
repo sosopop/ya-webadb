@@ -21,6 +21,30 @@ const classNames = mergeStyleSets({
     }
 });
 
+let computeShow = (v: any) => {
+    if (v > 1024 * 1024 * 1024 * 1024) {
+        return (v / 1024 / 1024 / 1024 / 1024).toFixed(1) + " TB";
+    } if (v > 1024 * 1024 * 1024) {
+        return (v / 1024 / 1024 / 1024).toFixed(1) + " GB";
+    } if (v > 1024 * 1024) {
+        return (v / 1024 / 1024).toFixed(1) + " MB";
+    } else if (v > 1024) {
+        return (v / 1024).toFixed(1) + " KB";
+    }
+    return Math.round(v) + " B";
+}
+
+let computeShowFromK = (v: any) => {
+    if (v > 1024 * 1024 * 1024) {
+        return (v / 1024 / 1024 / 1024).toFixed(1) + " TB";
+    } if (v > 1024 * 1024) {
+        return (v / 1024 / 1024).toFixed(1) + " GB";
+    } if (v > 1024) {
+        return (v / 1024).toFixed(1) + " MB";
+    }
+    return Math.round(v) + " KB";
+}
+
 const propsMap: any = {
     "ro.product.model": "设备型号",
     "ro.product.device": "设备名称",
@@ -28,6 +52,7 @@ const propsMap: any = {
     "ro.product.manufacturer": "设备厂商",
     "ro.build.version.release": "系统版本",
     "ro.build.date": "固件生成日期",
+    "ro.build.description": "固件指纹",
 };
 
 const optionsCPU = {
@@ -323,7 +348,7 @@ const optionsTemp = {
             fontSize: 16
         },
         data: [{
-            name: '系统温度',
+            name: 'CPU温度',
             value: 0
         }]
     }]
@@ -336,6 +361,7 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
 }: RouteProps): JSX.Element | null => {
     const [data, setData] = useState([{ value: 0.0 }]);
     const [sysInfo, setSysInfo] = useState([{ key: "", name: "", value: "" } as any]);
+    const [appInfo, setAppInfo] = useState([{ key: "", name: "", ver: "", time: "" } as any]);
 
     useEffect(() => {
         //setData({ value: data.value + 1 });
@@ -383,7 +409,7 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                 let serial = parsed[parsed.length - 1];
                 result.push({
                     key: 'serial',
-                    name: '设备序列号',
+                    name: '设备主板编号',
                     value: serial
                 })
             } catch (error) { }
@@ -437,7 +463,7 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
             } catch (error) { }
 
             try {
-                let ret = await device.exec("dumpsys display|grep size");
+                let ret = await device.exec("dumpsys display|grep 'Display Devices'");
                 let parsed = ret.match(/(\d+)/);
                 let num = "0";
                 if (parsed) {
@@ -454,14 +480,6 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                 let ret = await device.exec("cat /proc/net/dev|grep wlan0");
                 let parsedNet = ret.split(/\s+/);
                 if (parsedNet?.length > 10) {
-                    let computeShow = (v: any) => {
-                        if (v > 1024 * 1024) {
-                            return (v / 1024 / 1024).toFixed(1) + " MB";
-                        } else if (v > 1024) {
-                            return (v / 1024).toFixed(1) + " KB";
-                        }
-                        return Math.round(v) + " B";
-                    }
                     let inSpeed = parseFloat(parsedNet[2]);
                     let outSpeed = parseFloat(parsedNet[10]);
                     result.push({
@@ -488,7 +506,42 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                     }
                 }
             } catch (error) { }
+
+            try {
+                let ret = await device.exec("dumpsys meminfo|grep RAM");
+                let parsedMEM = ret.replace(/,/g, "").match(/Total RAM\:\s*?(\d+)\s*?k[\s\S]*?Used RAM\:\s*?(\d+)\s*?k[\s\S]*?Lost RAM\:\s*?(-?\d+)\s*?k/i);
+                if (parsedMEM?.length === 4) {
+                    let total = parseFloat(parsedMEM[1]);
+                    let used = parseFloat(parsedMEM[2]);
+                    let lost = parseFloat(parsedMEM[3]);
+                    result.push({
+                        key: 'memused',
+                        name: '内存使用',
+                        value: computeShowFromK(used) + ' / ' + computeShowFromK(total),
+                    })
+                }
+            } catch (error) { }
+
             setSysInfo([...result]);
+
+            try {
+                let appResult: any = [];
+                let ret = await device.exec("pm list package|grep -o -E 'com\.cnnho.*'|busybox xargs -n1 dumpsys package|grep -E 'Package\\ \\[|lastUpdateTime|versionName'");
+                console.log(ret);
+                let packageList = ret.split("Package [");
+                for (let pkgInfo of packageList) {
+                    pkgInfo = pkgInfo.trim();
+                    let pkgInfoItems = pkgInfo.match(/(.*?)\][\s\S]*?versionName=([\d\.]*)[\s\S]*?lastUpdateTime=(.*)/);
+                    if (pkgInfoItems?.length === 4) {
+                        appResult.push({
+                            name: pkgInfoItems[1],
+                            ver: pkgInfoItems[2],
+                            time: pkgInfoItems[3],
+                        })
+                    }
+                }
+                setAppInfo(appResult);
+            } catch (error) { }
         })();
 
         let topSocket: any;
@@ -501,7 +554,6 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                 if (parsedCpu?.length === 2) {
                     if (chartRef.refCPU) {
                         const echartInstance = chartRef.refCPU.getEchartsInstance();
-                        console.log(parseFloat(parsedCpu[1]));
                         optionsCPU.series[0].data[0].value = parseInt(parsedCpu[1]);
                         echartInstance.setOption(optionsCPU);
                     }
@@ -658,6 +710,40 @@ export const DeviceInfo = withDisplayName('DeviceInfo')(({
                                         sysInfo.map((v) => (
                                             <tr key={v.key}>
                                                 <td><b>{v.name}</b></td><td>{v.value}</td>
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        </StackItem>
+                        <StackItem grow className={classNames.panel}>
+                        </StackItem>
+                    </Stack>
+                </StackItem>
+                <Text variant={'medium'} className={classNames.title}>应用信息</Text>
+                <StackItem>
+                    <Stack tokens={{
+                        childrenGap: 10,
+                    }} horizontal>
+                        <StackItem grow className={classNames.panel}>
+                            <table>
+                                <colgroup>
+                                    <col span={1} style={{ width: 300 }}></col>
+                                    <col span={1} style={{ width: 120 }}></col>
+                                    <col span={1}></col>
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th style={{ textAlign: 'left' }}>包名</th>
+                                        <th>版本号</th>
+                                        <th>更新时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        appInfo.map((v) => (
+                                            <tr key={v.key}>
+                                                <td><b>{v.name}</b></td><td style={{ textAlign: 'center' }}>{v.ver}</td><td>{v.time}</td>
                                             </tr>
                                         ))
                                     }

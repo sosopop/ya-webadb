@@ -72,7 +72,7 @@ class LineReader {
 function* parseScrcpyOutput(text: string): Generator<ScrcpyOutput> {
     const lines = new LineReader(text);
     let line: string | undefined;
-    while (line = lines.next()) {
+    while ((line = lines.next()) !== undefined) {
         if (line === '') {
             continue;
         }
